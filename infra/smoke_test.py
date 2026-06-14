@@ -8,12 +8,12 @@ Usage:
 """
 
 import sys
-import time
 
 
-def check_kafka():
+def check_kafka() -> bool:
     try:
         from confluent_kafka.admin import AdminClient
+
         client = AdminClient({"bootstrap.servers": "localhost:9092"})
         metadata = client.list_topics(timeout=5)
         print(f"  ✓ Kafka — connected (KRaft mode, {len(metadata.topics)} topics)")
@@ -23,9 +23,10 @@ def check_kafka():
         return False
 
 
-def check_postgres():
+def check_postgres() -> bool:
     try:
         import psycopg2
+
         conn = psycopg2.connect(
             host="localhost",
             port=5432,
@@ -49,19 +50,21 @@ def check_postgres():
         return False
 
 
-def check_minio():
+def check_minio() -> bool:
     try:
         import urllib.request
+
         req = urllib.request.urlopen("http://localhost:9000/minio/health/live", timeout=5)
         if req.status == 200:
             print("  ✓ MinIO — healthy (S3-compatible object storage)")
             return True
+        return False
     except Exception as e:
         print(f"  ✗ MinIO — {e}")
         return False
 
 
-def main():
+def main() -> None:
     print("\nFerroway Infrastructure Smoke Test")
     print("=" * 40)
 

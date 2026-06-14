@@ -49,3 +49,14 @@ jsonschema = "0.18"
 
 # Expression evaluation (derived signals)
 evalexpr = "11"
+
+# ─── Workspace-wide lint configuration ──────────────────────────────────────
+# CI runs: cargo clippy --workspace --all-targets -- -D warnings
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+unwrap_used = "warn"      # no unwrap() in production code
+expect_used = "warn"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"     # document all public APIs

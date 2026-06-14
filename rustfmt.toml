@@ -1,0 +1,7 @@
+# Ferroway Rust formatting — enforced in CI via `cargo fmt --check`.
+max_width = 100
+edition = "2021"
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+wrap_comments = true
+format_code_in_doc_comments = true
