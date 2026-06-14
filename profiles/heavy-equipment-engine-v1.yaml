@@ -1,0 +1,301 @@
+# Ferroway Manifest — Heavy Equipment Engine Controller
+# Profile ID: heavy-equipment-engine-v1
+# Domain: vehicular
+# Phase 1 demo profile — continuous analog channels only
+#
+# Three-tier computation model:
+#   Tier 1 (this file)     — raw sensor channels, hardware correlations
+#   Tier 2 (derived file)  — pre-computed signals (engine_load, pressure_delta, etc.)
+#   Tier 3 (Waypoints)     — complex domain logic in the Ferroway Trace pipeline
+#
+# Tier separation rule: correlation drivers must be Tier-1 raw channel IDs only.
+# Derived signal IDs (Tier 2) are not valid correlation drivers.
+# Validated at parse time by the Manifest parser.
+
+device:
+  profile_id: "heavy-equipment-engine-v1"
+  name: "Heavy Equipment Engine Controller"
+  domain: "vehicular"
+  asset_class: "construction-equipment"
+  firmware_version: "2.4.1"
+  manufacturer: "simulated"
+  description: >
+    Simulates an engine controller unit on a mid-size construction
+    machine. Covers powertrain, thermal, and hydraulic sensor channels
+    typical of a Tier 4 diesel engine installation.
+    Phase 1 — continuous analog channels only.
+
+# ─── CHANNELS ───────────────────────────────────────────────────────────────
+# Raw sensor channels only (Tier 1).
+# Supported data_type values: float32 | float64 | int16 | int32 | int64 | uint16 | uint32
+# Supported noise profiles: gaussian | drift | stepped | none
+#
+# The simulator reads data_type and populates the corresponding oneof field
+# in the TelemetryMessage proto:
+#   float32 -> value_f32
+#   float64 -> value_f64
+#   int16 / int32 -> value_i32
+#   int64 -> value_i64
+#   uint16 / uint32 -> value_u32
+
+channels:
+  - id: engine_rpm
+    name: "Engine RPM"
+    data_type: float32
+    unit: rpm
+    range: [0.0, 3200.0]
+    nominal: [600.0, 2400.0]
+    idle: 750.0
+    sample_rate_hz: 10
+    noise:
+      profile: gaussian
+      std_dev: 15.0
+    description: "Crankshaft rotational speed from reluctor wheel sensor"
+
+  - id: coolant_temp
+    name: "Coolant Temperature"
+    data_type: float32
+    unit: celsius
+    range: [-40.0, 130.0]
+    nominal: [75.0, 98.0]
+    idle: 82.0
+    sample_rate_hz: 1
+    noise:
+      profile: drift
+      drift_rate: 0.02
+      std_dev: 0.3
+    description: "Engine coolant temperature at thermostat housing"
+
+  - id: hydraulic_pressure
+    name: "Hydraulic System Pressure"
+    data_type: float32
+    unit: bar
+    range: [0.0, 350.0]
+    nominal: [180.0, 280.0]
+    idle: 20.0
+    sample_rate_hz: 5
+    noise:
+      profile: gaussian
+      std_dev: 2.5
+    description: "Main hydraulic circuit pressure"
+
+  - id: fuel_flow
+    name: "Fuel Flow Rate"
+    data_type: float32
+    unit: liters_per_hour
+    range: [0.0, 25.0]
+    nominal: [2.0, 18.0]
+    idle: 2.2
+    sample_rate_hz: 2
+    noise:
+      profile: gaussian
+      std_dev: 0.1
+    description: "Instantaneous fuel consumption rate"
+
+  - id: battery_voltage
+    name: "System Battery Voltage"
+    data_type: float32
+    unit: volts
+    range: [9.0, 16.0]
+    nominal: [13.2, 14.8]
+    idle: 13.8
+    sample_rate_hz: 1
+    noise:
+      profile: gaussian
+      std_dev: 0.05
+    description: "Main electrical system voltage at battery terminals"
+
+  - id: throttle_position
+    name: "Throttle Position"
+    data_type: float32
+    unit: percent
+    range: [0.0, 100.0]
+    nominal: [0.0, 100.0]
+    idle: 0.0
+    sample_rate_hz: 10
+    noise:
+      profile: gaussian
+      std_dev: 0.2
+    description: "Electronic throttle position sensor output"
+
+  - id: oil_pressure
+    name: "Engine Oil Pressure"
+    data_type: float32
+    unit: bar
+    range: [0.0, 8.0]
+    nominal: [2.5, 6.0]
+    idle: 2.8
+    sample_rate_hz: 2
+    noise:
+      profile: gaussian
+      std_dev: 0.15
+    description: "Engine oil gallery pressure"
+
+# ─── CORRELATIONS ───────────────────────────────────────────────────────────
+# Inter-channel relationships. Drivers must be Tier-1 raw channel IDs only.
+#
+# Relationship equations (all relative to the influenced channel's idle value):
+#   linear:        influenced(t) = idle + coefficient * driver(t)
+#   lagged_linear: influenced(t) = idle + coefficient * driver(t - lag_seconds)
+#   sqrt:          influenced(t) = idle + coefficient * sqrt(driver(t))
+#
+# Coefficient validation examples:
+#   rpm_drives_fuel_flow:        2.2 + 0.006 * 2000 RPM = 14.2 L/hr (within nominal)
+#   fuel_flow_drives_coolant:    82.0 + 1.6 * 18 L/hr  = 110.8°C (heavy load, plausible)
+#   rpm_drives_oil_pressure:     2.8 + 0.08 * sqrt(2000) = 6.4 bar (within nominal)
+#   rpm_drives_hydraulic:        20.0 + 0.08 * 2000 RPM = 180.0 bar (lower nominal bound)
+
+correlations:
+  - name: "rpm_drives_fuel_flow"
+    description: "Fuel flow scales with engine RPM"
+    driver: engine_rpm          # Tier-1 raw channel — valid
+    influenced: fuel_flow
+    relationship: linear
+    coefficient: 0.006
+
+  - name: "fuel_flow_drives_coolant_temp"
+    description: >
+      Fuel flow as Tier-1 proxy for engine load drives coolant temperature
+      with a 30-second thermal lag. Uses fuel_flow directly (Tier-1) rather
+      than engine_load (Tier-2 derived signal) to preserve tier separation.
+    driver: fuel_flow           # Tier-1 raw channel — valid
+    influenced: coolant_temp
+    relationship: lagged_linear
+    coefficient: 1.6
+    lag_seconds: 30
+
+  - name: "rpm_drives_oil_pressure"
+    description: "Oil pressure rises with RPM via pump speed (sqrt relationship)"
+    driver: engine_rpm          # Tier-1 raw channel — valid
+    influenced: oil_pressure
+    relationship: sqrt
+    coefficient: 0.08
+
+  - name: "rpm_drives_hydraulic_pressure"
+    description: "Hydraulic pump output scales linearly with engine RPM"
+    driver: engine_rpm          # Tier-1 raw channel — valid
+    influenced: hydraulic_pressure
+    relationship: linear
+    coefficient: 0.08
+
+# ─── FAULTS ─────────────────────────────────────────────────────────────────
+# Named failure modes the simulator can inject.
+# Referenced by scenario files via fault ID.
+#
+# onset types:
+#   delayed   — fault activates after delay_seconds
+#   immediate — fault activates instantly when injected
+#   recurring — see sensor_dropout for the recurring onset model
+#
+# behavior types:
+#   gradual_rise — value increases at rate_per_second until ceiling
+#   gradual_drop — value decreases at rate_per_second until floor
+#   step_increase — immediate offset by magnitude
+#   dropout — channel goes silent (no emission) for duration
+
+faults:
+  - id: coolant_leak
+    name: "Coolant System Leak"
+    description: >
+      Gradual coolant loss causes rising temperature. Stacks on top
+      of the correlation-driven temperature from fuel_flow.
+    affected_channels:
+      - channel: coolant_temp
+        behavior: gradual_rise
+        rate_per_second: 0.05
+        ceiling: 115.0
+    onset:
+      type: delayed
+      delay_seconds: 120
+    recoverable: false
+    severity: high
+
+  - id: fuel_injector_fault
+    name: "Fuel Injector Degradation"
+    description: "Partial injector blockage — increased fuel flow and elevated temperature"
+    affected_channels:
+      - channel: fuel_flow
+        behavior: step_increase
+        magnitude: 3.5
+      - channel: coolant_temp
+        behavior: gradual_rise
+        rate_per_second: 0.02
+        ceiling: 105.0
+    onset:
+      type: immediate
+    recoverable: false
+    severity: medium
+
+  - id: hydraulic_pressure_loss
+    name: "Hydraulic Pressure Loss"
+    description: "Gradual pressure drop — valve wear, seal degradation, or slow leak"
+    affected_channels:
+      - channel: hydraulic_pressure
+        behavior: gradual_drop
+        rate_per_second: 0.3
+        floor: 80.0
+    onset:
+      type: delayed
+      delay_seconds: 60
+    recoverable: true
+    recovery_seconds: 300
+    severity: medium
+
+  - id: sensor_dropout
+    name: "Sensor Signal Dropout"
+    description: >
+      Recurring intermittent signal loss on engine_rpm. First dropout
+      occurs within the onset window, then recurs at declared interval.
+      Signal recovers automatically after each dropout duration.
+      Handled by the recurring onset model in FERRO-20.
+    affected_channels:
+      - channel: engine_rpm
+        behavior: dropout
+    onset:
+      type: recurring
+      first_occurrence_window_seconds: [30, 120]
+    dropout:
+      duration_seconds: 2
+      interval_seconds: 15
+    recovery:
+      type: automatic
+    severity: low
+
+  - id: battery_drain
+    name: "Electrical System Drain"
+    description: "Parasitic drain or failing alternator — slow voltage drop"
+    affected_channels:
+      - channel: battery_voltage
+        behavior: gradual_drop
+        rate_per_second: 0.001
+        floor: 11.5
+    onset:
+      type: delayed
+      delay_seconds: 300
+    recoverable: false
+    severity: medium
+
+# ─── TRANSPORT ──────────────────────────────────────────────────────────────
+# Wire encoding and Kafka topic configuration.
+# Phase 1: JSON encoding.
+# Phase 2: migrates to Avro with AWS Glue Schema Registry.
+#
+# Topic pattern: ferroway.{domain}.{profile_id}.{channel_id}
+# Example: ferroway.vehicular.heavy-equipment-engine-v1.engine_rpm
+#
+# The data_type field is carried explicitly on every message so consumers
+# can recover the declared channel precision without profile lookup.
+
+transport:
+  default_encoding: json
+
+  kafka:
+    bootstrap_servers: "localhost:9092"
+    topic_pattern: "ferroway.{domain}.{profile_id}.{channel_id}"
+    compression: none
+    acks: all
+
+  file:
+    path: "./output"
+    format: jsonl
+    rotation_seconds: 3600

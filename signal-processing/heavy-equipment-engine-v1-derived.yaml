@@ -1,0 +1,74 @@
+# Ferroway Derived Signals — Heavy Equipment Engine Controller
+# Companion to: profiles/heavy-equipment-engine-v1.yaml
+# Tier 2 of the three-tier computation model.
+#
+# These signals mirror what the device's ECU pre-computes and broadcasts
+# alongside raw sensor values on the CAN bus. The simulator evaluates
+# these expressions and emits them as source: "derived" messages.
+#
+# Expression grammar (whitelisted — validated at parse time):
+#   arithmetic:              +  -  *  /  ()  numeric literals  channel IDs
+#   delta(channel_id):       change since previous sample (channel units per sample)
+#   rolling_mean(ch, n=N):   mean of last N samples (N = sample count, not seconds)
+#
+# Rate alignment rule: a derived channel's sample_rate_hz MUST equal the
+# sample_rate_hz of all channel IDs it references in its expression.
+# Mismatched rates are a parse-time validation error.
+#
+# Conditional logic and arbitrary function calls are NOT supported.
+# Complex domain logic belongs in Tier-3 Waypoints in Ferroway Trace.
+
+profile: "heavy-equipment-engine-v1"
+version: "1.0.0"
+description: >
+  Standard derived signal definitions for the heavy equipment engine
+  controller. Mirrors pre-computed signals the ECU broadcasts on the
+  CAN bus alongside raw sensor values.
+
+derived_channels:
+  - id: engine_load
+    name: "Engine Load"
+    expression: "(fuel_flow / 25.0) * 100"
+    data_type: float32
+    unit: percent
+    sample_rate_hz: 2             # matches fuel_flow (2 Hz) — rate aligned
+    description: >
+      Engine load as a percentage of maximum fuel flow capacity.
+      Derived from fuel_flow (Tier-1). Note: engine_load cannot be
+      used as a correlation driver in the Manifest — use fuel_flow
+      directly to preserve tier separation.
+
+  - id: thermal_margin
+    name: "Thermal Margin"
+    expression: "98.0 - coolant_temp"
+    data_type: float32
+    unit: celsius
+    sample_rate_hz: 1             # matches coolant_temp (1 Hz) — rate aligned
+    description: >
+      Remaining thermal headroom before coolant_temp reaches the
+      upper nominal bound (98°C). Negative values indicate the
+      channel has left the nominal operating band.
+
+  - id: pressure_delta
+    name: "Hydraulic Pressure Delta"
+    expression: "delta(hydraulic_pressure)"
+    data_type: float32
+    unit: bar_per_sample          # per sample at 5 Hz = per 200ms interval
+    sample_rate_hz: 5             # matches hydraulic_pressure (5 Hz) — rate aligned
+    description: >
+      Change in hydraulic pressure since the previous sample.
+      Negative values indicate pressure loss. At 5 Hz each sample
+      is 200ms apart, so -1.5 bar/sample = -7.5 bar/second equivalent.
+      Useful for early leak detection before absolute pressure drops
+      below the nominal floor.
+
+  - id: rpm_smoothed
+    name: "Smoothed Engine RPM"
+    expression: "rolling_mean(engine_rpm, n=5)"
+    data_type: float32
+    unit: rpm
+    sample_rate_hz: 10            # matches engine_rpm (10 Hz) — rate aligned
+    description: >
+      Five-sample rolling mean of engine RPM. Removes instantaneous
+      noise for load and efficiency calculations. At 10 Hz, n=5
+      represents a 500ms smoothing window.

@@ -1,0 +1,53 @@
+# Ferroway Scenario — Gradual System Degradation
+# Profile: heavy-equipment-engine-v1
+#
+# Scenario purpose: Phase 1 end-to-end demo.
+# Demonstrates two compounding fault conditions:
+#   T+60s  — coolant leak begins (gradual_rise, high severity)
+#   T+300s — battery drain begins (gradual_drop, medium severity)
+#   T+600s — simulator shuts down cleanly
+#
+# This scenario exercises:
+#   - Fault injection (FERRO-14)
+#   - Quality flag transitions good -> fault (FERRO-14)
+#   - Gate routing of anomalous messages to dead-letter queue (FERRO-23)
+#   - Anomaly scoring Waypoint detecting coolant_temp deviation (FERRO-22)
+#
+# Command vocabulary:
+#   shutdown — stop the simulator cleanly after flushing in-flight messages
+#   pause    — hold current state, stop emitting
+#   resume   — resume from pause
+
+profile: "heavy-equipment-engine-v1"
+name: "Gradual System Degradation"
+version: "1.0.0"
+description: >
+  A coolant leak begins at T+60s causing a gradual thermal event.
+  Battery drain begins at T+300s representing a failing alternator.
+  The two faults compound over time, providing a realistic multi-fault
+  scenario for pipeline validation and Waypoint testing.
+
+events:
+  - at_seconds: 60
+    inject_fault: coolant_leak
+    note: >
+      Coolant temperature begins rising at 0.05°C/second.
+      At the correlation coefficient of 1.6, full load already
+      puts coolant_temp near 110°C — the leak stacks on top of this.
+      Expect quality flag to transition from good -> degraded -> fault
+      as temperature approaches and exceeds nominal ceiling (98°C).
+
+  - at_seconds: 300
+    inject_fault: battery_drain
+    note: >
+      Battery voltage begins dropping at 0.001V/second.
+      At T+300s voltage is already under load from the thermal event.
+      Floor is 11.5V. Expect Gate assertions on battery_voltage
+      to start failing around T+500s.
+
+  - at_seconds: 600
+    command: shutdown
+    note: >
+      Clean shutdown after 10 minutes. All in-flight Kafka messages
+      are flushed before the simulator exits. JSONL output file
+      is finalized and closed.
