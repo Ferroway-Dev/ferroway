@@ -1,0 +1,34 @@
+[package]
+name = "ferroway-cast-profile"
+description = "Manifest parsing and validation library for Ferroway Cast"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "ferroway_cast_profile"
+path = "src/lib.rs"
+
+[dependencies]
+# Serialization — YAML for manifests, JSON for schema validation payloads
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+
+# Derived signal expression evaluation
+evalexpr.workspace = true
+
+# JSON Schema validation (manifest structure)
+jsonschema.workspace = true
+
+# Error handling
+anyhow.workspace = true
+thiserror.workspace = true
+
+# Logging
+tracing.workspace = true
+
+[lints]
+workspace = true
