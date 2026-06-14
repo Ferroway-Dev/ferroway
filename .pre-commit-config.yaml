@@ -1,0 +1,33 @@
+# Ferroway pre-commit hooks.
+# Install once per clone: `pre-commit install`
+# Run all manually:       `pre-commit run --all-files`
+repos:
+  # --- Python: ruff lint + format ---
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.17
+    hooks:
+      - id: ruff-check
+        name: ruff (lint, autofix)
+        args: [--fix]
+      - id: ruff-format
+        name: ruff (format)
+
+  # --- General hygiene ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: detect-private-key
+
+  # --- Rust: rustfmt via local cargo ---
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --
+        language: system
+        types: [rust]
+        pass_filenames: false

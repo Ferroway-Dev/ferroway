@@ -10,7 +10,7 @@ Before initializing Git, copy the generated files into your local project direct
 
 Your local project root is:
 ```
-C:\Users\dldur\SoftwareProjects\Ferroway\
+C:\Users\dldur\SoftwareProjects\Ferroway_Dev\Ferroway\
 ```
 
 Copy the following files from wherever Claude delivered them, maintaining the directory structure exactly:
@@ -43,7 +43,7 @@ Ferroway\
 Create the empty directories in PowerShell:
 
 ```powershell
-cd C:\Users\dldur\SoftwareProjects\Ferroway
+cd C:\Users\dldur\SoftwareProjects\Ferroway_Dev\Ferroway
 New-Item -ItemType Directory -Force -Path simulator, pipeline, forge, profiles, signal-processing, scenarios, output
 ```
 
@@ -67,7 +67,7 @@ Go to [github.com/Ferroway-Dev](https://github.com/Ferroway-Dev) → New reposit
 ### 1b. Initialize the local repo
 
 ```powershell
-cd C:\Users\dldur\SoftwareProjects\Ferroway
+cd C:\Users\dldur\SoftwareProjects\Ferroway_Dev\Ferroway
 git init
 git add .
 git commit -m "FERRO-1: Initial repository structure and infrastructure files"
@@ -255,7 +255,7 @@ pip install confluent-kafka psycopg2-binary
 ### 4b. Start Docker Compose
 
 ```powershell
-cd C:\Users\dldur\SoftwareProjects\Ferroway
+cd C:\Users\dldur\SoftwareProjects\Ferroway_Dev\Ferroway
 docker compose -f infra/docker-compose.yml up -d
 ```
 
@@ -302,7 +302,7 @@ Verify the commit appears in the FERRO-2 Jira ticket's development panel (may ta
 ## What's Ready After This Setup
 
 - ✓ GitHub org: `github.com/Ferroway-Dev`
-- ✓ Local repo initialized at `C:\Users\dldur\SoftwareProjects\Ferroway`
+- ✓ Local repo initialized at `C:\Users\dldur\SoftwareProjects\Ferroway_Dev\Ferroway`
 - ✓ Monorepo structure in place
 - ✓ Confluence space with architecture documentation
 - ✓ Jira projects FERRO and FERRODOC with Phase 1 epics
