@@ -11,8 +11,8 @@ Ferroway bridges the gap between embedded device output and cloud data pipelines
 | Component | Directory | Language | Description |
 |---|---|---|---|
 | **Ferroway Forge** | `forge/` | Python | CLI and spec authoring tool — define pipeline specs, retrieve requirements context, generate and validate Trace pipelines |
-| **Ferroway Trace** | `pipeline/` | Python | Pipeline runtime — ingests telemetry, routes through Waypoints and Gates, writes to output sinks |
-| **Ferroway Cast** | `simulator/` | Rust | Edge device simulator — emits configurable, realistic sensor telemetry from Manifests |
+| **Ferroway Trace** | `trace/` | Python | Pipeline runtime — ingests telemetry, routes through Waypoints and Gates, writes to output sinks |
+| **Ferroway Cast** | `cast/` | Rust | Edge device simulator — emits configurable, realistic sensor telemetry from Manifests |
 
 ## Key Concepts
 
@@ -27,8 +27,8 @@ Ferroway bridges the gap between embedded device output and cloud data pipelines
 
 ```
 ferroway/
-  simulator/          # Ferroway Cast — Rust edge device simulator
-  pipeline/           # Ferroway Trace — Python pipeline runtime
+  cast/               # Ferroway Cast — Rust edge device simulator
+  trace/              # Ferroway Trace — Python pipeline runtime
   forge/              # Ferroway Forge — Python CLI and spec authoring tool
   profiles/           # YAML Manifests — device profile definitions
   signal-processing/  # YAML derived signal definitions
@@ -64,7 +64,7 @@ This starts:
 ### Run the simulator
 
 ```bash
-cd simulator
+cd cast
 cargo run -- \
   --profile ../profiles/heavy-equipment-engine-v1.yaml \
   --derived ../signal-processing/heavy-equipment-engine-v1-derived.yaml \
@@ -80,8 +80,8 @@ cd forge
 pip install -e .
 
 ferroway context add ../docs/requirements/pressure_monitoring.md
-ferroway generate --output ../pipeline/generated/pressure_monitor.py
-ferroway validate ../pipeline/generated/pressure_monitor.py
+ferroway generate --output ../trace/generated/pressure_monitor.py
+ferroway validate ../trace/generated/pressure_monitor.py
 ```
 
 ---

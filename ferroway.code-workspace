@@ -1,7 +1,7 @@
 {
   "folders": [
-    { "path": "simulator", "name": "Ferroway Cast (Rust)" },
-    { "path": "pipeline",  "name": "Ferroway Trace (Python)" },
+    { "path": "cast",  "name": "Ferroway Cast (Rust)" },
+    { "path": "trace", "name": "Ferroway Trace (Python)" },
     { "path": "forge",     "name": "Ferroway Forge (Python)" },
     { "path": "infra",     "name": "Infra" },
     { "path": "proto",     "name": "Proto" }

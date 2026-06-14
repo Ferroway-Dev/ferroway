@@ -24,14 +24,14 @@ deployed data systems.
 
 | Component | Directory | Language | Role |
 |---|---|---|---|
-| **Ferroway Cast** | `simulator/` | Rust | Edge device simulator |
-| **Ferroway Trace** | `pipeline/` | Python | Pipeline runtime |
+| **Ferroway Cast** | `cast/` | Rust | Edge device simulator |
+| **Ferroway Trace** | `trace/` | Python | Pipeline runtime |
 | **Ferroway Forge** | `forge/` | Python | CLI and spec authoring tool |
 
 ### Key Vocabulary
 
 - **Manifest** — device profile YAML (`profiles/*.yaml`)
-- **Waypoints** — calculation nodes in Ferroway Trace (`pipeline/`)
+- **Waypoints** — calculation nodes in Ferroway Trace (`trace/`)
 - **Gates** — assertion checkpoints between Waypoints
 - **Derived signals** — pre-computed signals (`signal-processing/*.yaml`)
 - **Scenarios** — fault injection scripts (`scenarios/*.yaml`)
@@ -42,7 +42,7 @@ deployed data systems.
 
 ```
 ferroway/
-  simulator/            # Ferroway Cast — Rust
+  cast/                 # Ferroway Cast — Rust
     profile/            # Manifest parser library crate
       src/
         lib.rs          # Public API re-exports
@@ -54,7 +54,7 @@ ferroway/
     src/
       main.rs           # Cast binary entry point
     Cargo.toml          # Cast binary crate
-  pipeline/             # Ferroway Trace — Python
+  trace/                # Ferroway Trace — Python
   forge/                # Ferroway Forge — Python
   profiles/             # Manifest YAML files (device profiles)
   signal-processing/    # Derived signal YAML files
@@ -79,7 +79,7 @@ Pre-computed signals mirroring ECU broadcasts.
 Supported expressions: arithmetic, `delta(ch)`, `rolling_mean(ch, n=N)`.
 `sample_rate_hz` must match referenced source channel rates (rate alignment rule).
 
-**Tier 3 — Waypoints (Ferroway Trace `pipeline/`):**
+**Tier 3 — Waypoints (Ferroway Trace `trace/`):**
 Complex domain logic, statistical models, ML inference.
 
 **Tier separation rule:** Tier-1 correlation `driver` fields must reference
@@ -167,7 +167,7 @@ pre-commit run --all-files  # all hooks
 ```
 
 `ruff` select rules: `["E", "F", "I", "UP", "N", "ANN", "B", "SIM", "RUF"]`
-`mypy` runs in strict mode. See `pipeline/pyproject.toml` and `forge/pyproject.toml`.
+`mypy` runs in strict mode. See `trace/pyproject.toml` and `forge/pyproject.toml`.
 
 ---
 

@@ -31,8 +31,8 @@ Ferroway\
   docs\
     canonical-schema.md
     setup-guide.md        ← this file
-  simulator\              ← empty directory (create it)
-  pipeline\               ← empty directory (create it)
+  cast\                   ← empty directory (create it)
+  trace\                  ← empty directory (create it)
   forge\                  ← empty directory (create it)
   profiles\               ← empty directory (create it)
   signal-processing\      ← empty directory (create it)
@@ -44,7 +44,7 @@ Create the empty directories in PowerShell:
 
 ```powershell
 cd C:\Users\dldur\SoftwareProjects\Ferroway_Dev\Ferroway
-New-Item -ItemType Directory -Force -Path simulator, pipeline, forge, profiles, signal-processing, scenarios, output
+New-Item -ItemType Directory -Force -Path cast, trace, forge, profiles, signal-processing, scenarios, output
 ```
 
 Verify the structure looks right before continuing:

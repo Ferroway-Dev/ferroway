@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "simulator",
-    "simulator/profile",
+    "cast",
+    "cast/profile",
 ]
 resolver = "2"
 

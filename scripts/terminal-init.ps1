@@ -1,6 +1,6 @@
 # Ferroway workspace terminal initializer.
 # Loaded automatically by the "Ferroway Shell" terminal profile in ferroway.code-workspace.
-# Switches between pipeline/.venv, forge/.venv, and the bare Rust environment
+# Switches between trace/.venv, forge/.venv, and the bare Rust environment
 # whenever you cd between subprojects.
 
 $script:FerrRoot    = Split-Path -Parent $PSScriptRoot
@@ -10,9 +10,9 @@ function _Ferroway_SwitchEnv {
     $here = (Get-Location).Path
 
     # Classify the current directory.
-    if ($here.StartsWith((Join-Path $script:FerrRoot 'pipeline'))) { $next = 'pipeline' }
+    if ($here.StartsWith((Join-Path $script:FerrRoot 'trace'))) { $next = 'trace' }
     elseif ($here.StartsWith((Join-Path $script:FerrRoot 'forge'))) { $next = 'forge' }
-    elseif ($here.StartsWith((Join-Path $script:FerrRoot 'simulator'))) { $next = 'simulator' }
+    elseif ($here.StartsWith((Join-Path $script:FerrRoot 'cast'))) { $next = 'cast' }
     else { $next = 'root' }
 
     if ($next -eq $script:FerrActive) { return }   # already correct — no-op
@@ -21,15 +21,15 @@ function _Ferroway_SwitchEnv {
     if (Get-Command deactivate -ErrorAction SilentlyContinue) { deactivate }
 
     switch ($next) {
-        'pipeline' {
-            $activate = Join-Path $script:FerrRoot 'pipeline\.venv\Scripts\Activate.ps1'
+        'trace' {
+            $activate = Join-Path $script:FerrRoot 'trace\.venv\Scripts\Activate.ps1'
             if (Test-Path $activate) { & $activate }
         }
         'forge' {
             $activate = Join-Path $script:FerrRoot 'forge\.venv\Scripts\Activate.ps1'
             if (Test-Path $activate) { & $activate }
         }
-        # 'simulator' / 'root': Rust is on PATH globally via rustup — nothing to activate.
+        # 'cast' / 'root': Rust is on PATH globally via rustup — nothing to activate.
     }
 
     $script:FerrActive = $next

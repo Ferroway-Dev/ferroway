@@ -1,5 +1,5 @@
 [tool.uv.workspace]
-members = ["forge", "pipeline"]
+members = ["forge", "trace"]
 
 [tool.ruff]
 line-length = 100
@@ -13,7 +13,7 @@ select = ["E", "F", "I", "UP", "N", "ANN", "B", "SIM", "RUF"]
 "*_pb2_grpc.py" = ["ALL"]
 
 [tool.pytest.ini_options]
-testpaths = ["forge/tests", "pipeline/tests"]
+testpaths = ["forge/tests", "trace/tests"]
 asyncio_mode = "auto"
 
 [tool.mypy]

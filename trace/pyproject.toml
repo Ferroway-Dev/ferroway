@@ -1,4 +1,4 @@
-# Ferroway Trace — pipeline/pyproject.toml
+# Ferroway Trace — trace/pyproject.toml
 
 [project]
 name = "ferroway-trace"
