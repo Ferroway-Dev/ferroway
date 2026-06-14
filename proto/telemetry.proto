@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package ferroway.telemetry.v1;
+
+option go_package = "github.com/Ferroway-Dev/ferroway/proto/telemetry/v1";
+
+// TelemetryMessage is the canonical wire format for all sensor data
+// flowing through the Ferroway platform.
+//
+// Source of truth: this file.
+// JSON encoding is a defined serialization of this struct.
+// See docs/canonical-schema.md for field definitions and wire examples.
+message TelemetryMessage {
+  // Identity
+  string device_id    = 1;  // Unique identifier for this device instance
+  string profile_id   = 2;  // Manifest profile_id this device is running
+  string channel_id   = 3;  // Channel identifier from the Manifest
+
+  // Timing — UTC epoch nanoseconds (no string parsing in hot path)
+  int64  timestamp_nanos = 4;
+
+  // Metadata
+  string unit      = 5;  // Unit of measure matching Manifest channel declaration
+  Quality quality  = 6;  // Signal quality flag set by Ferroway Cast
+  Source  source   = 7;  // RAW sensor or Cast-computed derived signal
+
+  // Declared channel data_type from the Manifest — always present.
+  // Allows consumers to recover declared precision without profile lookup.
+  // Values: float32 | float64 | int16 | int32 | int64 | uint16 | uint32
+  string data_type = 13;
+
+  // Value — only one field is populated per message.
+  // The data_type field identifies which oneof field to read.
+  oneof value {
+    float  value_f32 = 8;   // data_type: float32
+    double value_f64 = 9;   // data_type: float64
+    int32  value_i32 = 10;  // data_type: int16 or int32
+    int64  value_i64 = 11;  // data_type: int64
+    uint32 value_u32 = 12;  // data_type: uint16 or uint32
+  }
+}
+
+// Quality represents the signal quality flag set by Ferroway Cast
+// based on the active fault state of the channel.
+enum Quality {
+  GOOD     = 0;  // Nominal operation — JSON: "good"
+  DEGRADED = 1;  // Channel approaching fault boundary — JSON: "degraded"
+  FAULT    = 2;  // Active fault modifying channel value — JSON: "fault"
+  DROPOUT  = 3;  // Channel signal absent — JSON: "dropout"
+}
+
+// Source identifies whether a value is a raw sensor reading or
+// a derived signal computed by Ferroway Cast from raw channels.
+enum Source {
+  RAW     = 0;  // Direct sensor reading — JSON: "raw"
+  DERIVED = 1;  // Ferroway Cast computed from raw channels — JSON: "derived"
+}
+
+// StreamRequest is sent by a gRPC client to initiate a telemetry stream.
+// Phase 2 — not implemented in Phase 1.
+message StreamRequest {
+  string profile_id  = 1;   // Filter by profile (empty = all profiles)
+  string channel_id  = 2;   // Filter by channel (empty = all channels)
+}
+
+// SimulatorStream service — Phase 2 gRPC transport.
+// Ferroway Cast implements this service when --transport grpc is specified.
+service SimulatorStream {
+  rpc StreamTelemetry(StreamRequest) returns (stream TelemetryMessage);
+}

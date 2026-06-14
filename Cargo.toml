@@ -1,0 +1,51 @@
+[workspace]
+members = [
+    "simulator",
+    "simulator/profile",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Daniel Durham <dldurham.dd@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/Ferroway-Dev/ferroway"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+
+# Kafka
+rdkafka = { version = "0.36", features = ["cmake-build"] }
+
+# Protobuf / gRPC (Phase 2)
+prost = "0.13"
+tonic = "0.12"
+
+# Error handling
+anyhow = "1"
+thiserror = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Random / noise generation
+rand = "0.8"
+rand_distr = "0.4"
+
+# JSON Schema validation
+jsonschema = "0.18"
+
+# Expression evaluation (derived signals)
+evalexpr = "11"
