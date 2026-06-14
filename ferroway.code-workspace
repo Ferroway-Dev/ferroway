@@ -6,5 +6,22 @@
     { "path": "infra",     "name": "Infra" },
     { "path": "proto",     "name": "Proto" }
   ],
-  "settings": {}
+  "settings": {
+    "python.defaultInterpreterPath": "",
+    "python.terminal.activateEnvironment": false,
+    "terminal.integrated.env.windows": {
+      "FERROWAY_ROOT": "C:\\Users\\dldur\\SoftwareProjects\\Ferroway_Dev\\Ferroway"
+    },
+    "terminal.integrated.defaultProfile.windows": "Ferroway Shell",
+    "terminal.integrated.profiles.windows": {
+      "Ferroway Shell": {
+        "source": "PowerShell",
+        "args": [
+          "-NoExit",
+          "-Command",
+          "Set-ExecutionPolicy -Scope Process RemoteSigned -Force; if (Test-Path \"$env:FERROWAY_ROOT\\scripts\\terminal-init.ps1\") { . \"$env:FERROWAY_ROOT\\scripts\\terminal-init.ps1\" }"
+        ]
+      }
+    }
+  }
 }

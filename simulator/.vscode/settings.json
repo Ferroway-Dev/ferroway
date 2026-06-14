@@ -1,4 +1,6 @@
 {
+  "python.defaultInterpreterPath": "",
+  "python.terminal.activateEnvironment": false,
   "[rust]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "rust-lang.rust-analyzer"
